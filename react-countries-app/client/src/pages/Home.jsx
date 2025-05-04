@@ -12,11 +12,14 @@ import CountryCard from '../components/CountryCard/CountryCard';
 
 const REGION_OPTIONS = ['Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 const LANGUAGE_OPTIONS = [
-    { code: 'en', name: 'English' },
-    { code: 'es', name: 'Spanish' },
-    { code: 'fr', name: 'French' },
-    { code: 'ar', name: 'Arabic' },
-    { code: 'pt', name: 'Portuguese' },
+    { code: 'eng', name: 'English' },
+    { code: 'spa', name: 'Spanish' },
+    { code: 'fra', name: 'French' },
+    { code: 'ara', name: 'Arabic' },
+    { code: 'por', name: 'Portuguese' },
+    { code: 'sin', name: 'Sinhala' },
+    { code: 'hin', name: 'Hindi' },
+    { code: 'tam', name: 'Tamil' },
 ];
 
 export default function Home() {
