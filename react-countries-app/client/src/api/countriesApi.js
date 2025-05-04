@@ -26,3 +26,9 @@ export async function fetchCountriesByLanguage(lang) {
     const { data } = await axios.get(`${BASE_URL}/lang/${lang}`);
     return data;
 }
+
+/** GET /alpha/{code} */
+export async function fetchCountryByCode(code) {
+    const { data } = await axios.get(`${BASE_URL}/alpha/${code}`);
+    return data;
+}

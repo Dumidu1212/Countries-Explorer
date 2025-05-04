@@ -1,24 +1,28 @@
+// src/components/SearchBar/SearchBar.jsx
 import PropTypes from 'prop-types';
+import { FiSearch } from 'react-icons/fi';
 
-/**
- * Controlled search input for country name filtering.
- */
 export default function SearchBar({ value, onSearch }) {
     return (
-        <input
-            type="search"
-            value={value}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search for a country..."
-            aria-label="Search countries by name"
-            className="
-        w-full max-w-md
-        px-4 py-2
-        border border-gray-300 rounded-md
-        focus:outline-none focus:ring-2 focus:ring-blue-500
-        mb-4
-      "
-        />
+        <div className="relative w-full max-w-md mb-6">
+            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+            <input
+                type="search"
+                value={value}
+                onChange={(e) => onSearch(e.target.value)}
+                placeholder="Search for a country..."
+                aria-label="Search countries by name"
+                className="
+          w-full
+          pl-12 pr-4 py-3
+          bg-white dark:bg-gray-700
+          text-gray-900 dark:text-gray-100
+          placeholder-gray-400 dark:placeholder-gray-500
+          rounded-md shadow
+          focus:outline-none focus:ring-2 focus:ring-blue-500
+        "
+            />
+        </div>
     );
 }
 
