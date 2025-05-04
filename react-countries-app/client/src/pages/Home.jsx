@@ -1,5 +1,7 @@
-// src/pages/Home.jsx
 import React, { useState, useEffect } from 'react';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import SearchBar from '../components/SearchBar/SearchBar';
 import FilterMenu from '../components/FilterMenu/FilterMenu';
 import CountryCard from '../components/CountryCard/CountryCard';
@@ -10,8 +12,9 @@ import {
     fetchCountriesByRegion,
     fetchCountriesByLanguage,
 } from '../api/countriesApi';
+import Typography from "@mui/material/Typography";
 
-const REGION_OPTIONS = ['Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
+const REGION_OPTIONS = ['Africa','Americas','Asia','Europe','Oceania'];
 const LANGUAGE_OPTIONS = [
     { code: 'eng', name: 'English' },
     { code: 'spa', name: 'Spanish' },
@@ -22,7 +25,6 @@ const LANGUAGE_OPTIONS = [
 ];
 
 export default function Home() {
-    // --- State ---
     const [searchTerm, setSearchTerm]           = useState('');
     const [selectedRegion, setSelectedRegion]   = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('');
@@ -30,10 +32,8 @@ export default function Home() {
     const [loading, setLoading]                 = useState(true);
     const [error, setError]                     = useState('');
 
-    // Debounce the searchTerm so we only hit the API 300ms after typing stops
     const debouncedSearch = useDebounce(searchTerm, 300);
 
-    // --- Fetching logic ---
     useEffect(() => {
         setLoading(true);
         setError('');
@@ -47,72 +47,65 @@ export default function Home() {
                     : fetchAllCountries;
 
         fetcher()
-            .then((data) => setCountries(data))
-            .catch((err) => {
-                console.error('Fetch error:', err);
-                setError('Failed to load countries.');
-            })
+            .then(setCountries)
+            .catch(() => setError('Failed to load countries.'))
             .finally(() => setLoading(false));
     }, [debouncedSearch, selectedRegion, selectedLanguage]);
 
-    // --- Handlers ---
     const handleSearch = (term) => {
         setSearchTerm(term);
         setSelectedRegion('');
         setSelectedLanguage('');
     };
-
     const handleRegionChange = (region) => {
         setSelectedRegion(region);
         setSearchTerm('');
         setSelectedLanguage('');
     };
-
     const handleLanguageChange = (lang) => {
         setSelectedLanguage(lang);
         setSearchTerm('');
         setSelectedRegion('');
     };
 
-    // --- Render ---
     return (
-        <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
+        <Container maxWidth="xl" sx={{ py: 4 }}>
+            {/* Controls */}
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    mb: 4,
+                    gap: 2
+                }}
+            >
+                <SearchBar value={searchTerm} onSearch={handleSearch} />
+                <FilterMenu
+                    regionOptions={REGION_OPTIONS}
+                    languageOptions={LANGUAGE_OPTIONS}
+                    selectedRegion={selectedRegion}
+                    selectedLanguage={selectedLanguage}
+                    onSelectRegion={handleRegionChange}
+                    onSelectLanguage={handleLanguageChange}
+                />
+            </Box>
 
-            <main className="container mx-auto px-6 py-8">
-                {/* Controls */}
-                <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-8">
-                    <SearchBar value={searchTerm} onSearch={handleSearch} />
-                    <FilterMenu
-                        regionOptions={REGION_OPTIONS}
-                        languageOptions={LANGUAGE_OPTIONS}
-                        selectedRegion={selectedRegion}
-                        selectedLanguage={selectedLanguage}
-                        onSelectRegion={handleRegionChange}
-                        onSelectLanguage={handleLanguageChange}
-                    />
-                </div>
+            {/* Feedback */}
+            {loading && <Typography align="center">Loading…</Typography>}
+            {error   && <Typography color="error" align="center">{error}</Typography>}
 
-                {/* Feedback */}
-                {loading && (
-                    <p className="text-center text-lg text-gray-700 dark:text-gray-300">
-                        Loading countries…
-                    </p>
-                )}
-                {error && (
-                    <p className="text-center text-lg text-red-600 dark:text-red-400">
-                        {error}
-                    </p>
-                )}
-
-                {/* Grid */}
-                {!loading && !error && (
-                    <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                        {countries.map((country) => (
-                            <CountryCard key={country.cca3} country={country} />
-                        ))}
-                    </div>
-                )}
-            </main>
-        </div>
+            {/* 4-per-row grid */}
+            {!loading && !error && (
+                <Grid container spacing={4}>
+                    {countries.map((c) => (
+                        <Grid key={c.cca3} item xs={12} sm={6} md={3}>
+                            <CountryCard country={c} />
+                        </Grid>
+                    ))}
+                </Grid>
+            )}
+        </Container>
     );
 }
