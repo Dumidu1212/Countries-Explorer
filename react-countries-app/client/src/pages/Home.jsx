@@ -1,7 +1,8 @@
+// src/pages/Home.jsx
 import React, { useState, useEffect } from 'react';
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import SearchBar from '../components/SearchBar/SearchBar';
 import FilterMenu from '../components/FilterMenu/FilterMenu';
 import CountryCard from '../components/CountryCard/CountryCard';
@@ -12,9 +13,8 @@ import {
     fetchCountriesByRegion,
     fetchCountriesByLanguage,
 } from '../api/countriesApi';
-import Typography from "@mui/material/Typography";
 
-const REGION_OPTIONS = ['Africa','Americas','Asia','Europe','Oceania'];
+const REGION_OPTIONS = ['Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 const LANGUAGE_OPTIONS = [
     { code: 'eng', name: 'English' },
     { code: 'spa', name: 'Spanish' },
@@ -25,13 +25,14 @@ const LANGUAGE_OPTIONS = [
 ];
 
 export default function Home() {
-    const [searchTerm, setSearchTerm]           = useState('');
-    const [selectedRegion, setSelectedRegion]   = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedRegion, setSelectedRegion] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('');
-    const [countries, setCountries]             = useState([]);
-    const [loading, setLoading]                 = useState(true);
-    const [error, setError]                     = useState('');
+    const [countries, setCountries] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
+    // Debounce search input
     const debouncedSearch = useDebounce(searchTerm, 300);
 
     useEffect(() => {
@@ -44,33 +45,17 @@ export default function Home() {
                 ? () => fetchCountriesByRegion(selectedRegion)
                 : selectedLanguage
                     ? () => fetchCountriesByLanguage(selectedLanguage)
-                    : fetchAllCountries;
+                    : () => fetchAllCountries();
 
         fetcher()
-            .then(setCountries)
+            .then((data) => setCountries(data))
             .catch(() => setError('Failed to load countries.'))
             .finally(() => setLoading(false));
     }, [debouncedSearch, selectedRegion, selectedLanguage]);
 
-    const handleSearch = (term) => {
-        setSearchTerm(term);
-        setSelectedRegion('');
-        setSelectedLanguage('');
-    };
-    const handleRegionChange = (region) => {
-        setSelectedRegion(region);
-        setSearchTerm('');
-        setSelectedLanguage('');
-    };
-    const handleLanguageChange = (lang) => {
-        setSelectedLanguage(lang);
-        setSearchTerm('');
-        setSelectedRegion('');
-    };
-
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
-            {/* Controls */}
+            {/* Search + Filters */}
             <Box
                 sx={{
                     display: 'flex',
@@ -78,33 +63,46 @@ export default function Home() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     mb: 4,
-                    gap: 2
+                    gap: 2,
                 }}
             >
-                <SearchBar value={searchTerm} onSearch={handleSearch} />
+                <SearchBar value={searchTerm} onSearch={setSearchTerm} />
                 <FilterMenu
                     regionOptions={REGION_OPTIONS}
                     languageOptions={LANGUAGE_OPTIONS}
                     selectedRegion={selectedRegion}
                     selectedLanguage={selectedLanguage}
-                    onSelectRegion={handleRegionChange}
-                    onSelectLanguage={handleLanguageChange}
+                    onSelectRegion={setSelectedRegion}
+                    onSelectLanguage={setSelectedLanguage}
                 />
             </Box>
 
-            {/* Feedback */}
+            {/* Loading & Error */}
             {loading && <Typography align="center">Loading…</Typography>}
-            {error   && <Typography color="error" align="center">{error}</Typography>}
+            {error && (
+                <Typography color="error" align="center">
+                    {error}
+                </Typography>
+            )}
 
-            {/* 4-per-row grid */}
+            {/* Country Grid */}
             {!loading && !error && (
-                <Grid container spacing={4}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                            xs: 'repeat(1, 1fr)',
+                            sm: 'repeat(2, 1fr)',
+                            md: 'repeat(3, 1fr)',
+                            lg: 'repeat(5, 1fr)',
+                        },
+                        gap: 3,
+                    }}
+                >
                     {countries.map((c) => (
-                        <Grid key={c.cca3} item xs={12} sm={6} md={3}>
-                            <CountryCard country={c} />
-                        </Grid>
+                        <CountryCard key={c.cca3} country={c} />
                     ))}
-                </Grid>
+                </Box>
             )}
         </Container>
     );

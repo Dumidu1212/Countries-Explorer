@@ -1,25 +1,29 @@
 // src/components/Header/Header.jsx
-import { useContext } from 'react';
-import { ThemeContext } from '../../contexts/ThemeContext';
-import { FiMoon, FiSun } from 'react-icons/fi';
+import React, { useContext } from 'react';
+import { AppBar, Toolbar, Typography, IconButton } from '@mui/material';
+import { LightMode, DarkMode } from '@mui/icons-material';
+import { useTheme, alpha } from '@mui/material/styles';
+import { ColorModeContext } from '../../App';
 
 export default function Header() {
-    const { dark, toggleTheme } = useContext(ThemeContext);
+    const theme = useTheme();
+    const { toggleColorMode } = useContext(ColorModeContext);
 
     return (
-        <header className="bg-white dark:bg-gray-800 shadow">
-            <div className="container mx-auto px-6 py-6 flex justify-between items-center">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Where in the world?
-                </h1>
-                <button
-                    onClick={toggleTheme}
-                    className="flex items-center space-x-2 text-gray-900 dark:text-white hover:opacity-75"
+        <AppBar position="sticky" color="inherit" elevation={0}>
+            <Toolbar sx={{ justifyContent: 'space-between' }}>
+                <Typography variant="h5">REST Countries Explorer</Typography>
+                <IconButton
+                    onClick={toggleColorMode}
+                    sx={{
+                        bgcolor: alpha(theme.palette.grey[300], 0.3),
+                        '&:hover': { bgcolor: alpha(theme.palette.grey[300], 0.5) },
+                    }}
+                    aria-label="toggle light/dark mode"
                 >
-                    {dark ? <FiSun /> : <FiMoon />}
-                    <span className="text-sm">{dark ? 'Light Mode' : 'Dark Mode'}</span>
-                </button>
-            </div>
-        </header>
+                    {theme.palette.mode === 'dark' ? <LightMode /> : <DarkMode />}
+                </IconButton>
+            </Toolbar>
+        </AppBar>
     );
 }

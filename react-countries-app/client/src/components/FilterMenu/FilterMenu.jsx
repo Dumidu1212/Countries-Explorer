@@ -1,51 +1,14 @@
 // src/components/FilterMenu/FilterMenu.jsx
+import React from 'react';
 import PropTypes from 'prop-types';
-import { FiChevronDown } from 'react-icons/fi';
-
-function Dropdown({ id, label, options, value, onChange }) {
-    return (
-        <div className="relative w-40">
-            <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
-            <select
-                id={id}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                aria-label={label}
-                className="
-          w-full px-4 py-2
-          bg-white dark:bg-gray-700
-          text-gray-900 dark:text-gray-100
-          border border-gray-200 dark:border-gray-600
-          rounded-lg shadow-sm
-          appearance-none
-          focus:outline-none focus:ring-2 focus:ring-blue-500
-          transition
-        "
-            >
-                <option value="">{label}</option>
-                {options.map((opt) =>
-                    typeof opt === 'string' ? (
-                        <option key={opt} value={opt}>
-                            {opt}
-                        </option>
-                    ) : (
-                        <option key={opt.code} value={opt.code}>
-                            {opt.name}
-                        </option>
-                    )
-                )}
-            </select>
-        </div>
-    );
-}
-
-Dropdown.propTypes = {
-    id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-    options: PropTypes.array.isRequired,
-    value: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-};
+import {
+    Box,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    useTheme,
+} from '@mui/material';
 
 export default function FilterMenu({
                                        regionOptions,
@@ -55,29 +18,68 @@ export default function FilterMenu({
                                        onSelectRegion,
                                        onSelectLanguage,
                                    }) {
+    const theme = useTheme();
+
     return (
-        <div className="flex flex-wrap gap-4">
-            <Dropdown
-                id="region-filter"
-                label="Filter by Region"
-                options={regionOptions}
-                value={selectedRegion}
-                onChange={onSelectRegion}
-            />
-            <Dropdown
-                id="language-filter"
-                label="Filter by Language"
-                options={languageOptions}
-                value={selectedLanguage}
-                onChange={onSelectLanguage}
-            />
-        </div>
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: theme.spacing(2),
+                my: theme.spacing(2),
+                flexWrap: 'wrap',
+            }}
+        >
+            <FormControl
+                variant="outlined"
+                size="small"
+                sx={{ minWidth: 160 }}
+            >
+                <InputLabel id="region-select-label">Region</InputLabel>
+                <Select
+                    labelId="region-select-label"
+                    value={selectedRegion}
+                    onChange={(e) => onSelectRegion(e.target.value)}
+                    label="Region"
+                >
+                    <MenuItem value=""><em>All Regions</em></MenuItem>
+                    {regionOptions.map((region) => (
+                        <MenuItem key={region} value={region}>
+                            {region}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
+            <FormControl
+                variant="outlined"
+                size="small"
+                sx={{ minWidth: 160 }}
+            >
+                <InputLabel id="language-select-label">Language</InputLabel>
+                <Select
+                    labelId="language-select-label"
+                    value={selectedLanguage}
+                    onChange={(e) => onSelectLanguage(e.target.value)}
+                    label="Language"
+                >
+                    <MenuItem value=""><em>All Languages</em></MenuItem>
+                    {languageOptions.map(({ code, name }) => (
+                        <MenuItem key={code} value={code}>
+                            {name}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+        </Box>
     );
 }
 
 FilterMenu.propTypes = {
     regionOptions: PropTypes.arrayOf(PropTypes.string).isRequired,
-    languageOptions: PropTypes.array.isRequired,
+    languageOptions: PropTypes.arrayOf(
+        PropTypes.shape({ code: PropTypes.string, name: PropTypes.string })
+    ).isRequired,
     selectedRegion: PropTypes.string.isRequired,
     selectedLanguage: PropTypes.string.isRequired,
     onSelectRegion: PropTypes.func.isRequired,

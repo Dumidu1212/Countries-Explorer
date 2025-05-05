@@ -1,96 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft } from 'react-icons/fi';
+import { useParams, Link as RouterLink } from 'react-router-dom';
+import {
+    Container,
+    Paper,
+    Button,
+    Box,
+    Tabs,
+    Tab,
+    Grow,
+    Skeleton,
+} from '@mui/material';
+import { TabContext, TabPanel } from '@mui/lab';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import { fetchCountryByCode } from '../api/countriesApi';
+import OverviewTab from '../components/CountryDetail/OverviewTab';
+import StatsTab from '../components/CountryDetail/StatsTab';
+import NeighborsTab from '../components/CountryDetail/NeighborsTab';
+
+const regionColors = {
+    Africa: ['#fceabb', '#f8b500'],
+    Americas: ['#a1c4fd', '#c2e9fb'],
+    Asia: ['#ff9a9e', '#fad0c4'],
+    Europe: ['#d4fc79', '#96e6a1'],
+    Oceania: ['#84fab0', '#8fd3f4'],
+};
 
 export default function CountryDetail() {
     const { code } = useParams();
-    const navigate = useNavigate();
     const [country, setCountry] = useState(null);
+    const [neighbors, setNeighbors] = useState([]);
+    const [tab, setTab] = useState('1');
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
 
     useEffect(() => {
-        setLoading(true);
-        fetchCountryByCode(code)
-            .then(([data]) => setCountry(data))
-            .catch(() => setError('Failed to load country.'))
-            .finally(() => setLoading(false));
+        async function load() {
+            setLoading(true);
+            const [data] = await fetchCountryByCode(code);
+            setCountry(data);
+            if (data.borders?.length) {
+                const nb = await Promise.all(data.borders.map(b => fetchCountryByCode(b).then(r => r[0])));
+                setNeighbors(nb);
+            }
+            setLoading(false);
+        }
+        load();
     }, [code]);
 
-    if (loading) return <p className="text-center mt-10">Loading…</p>;
-    if (error)   return <p className="text-center mt-10 text-red-600">{error}</p>;
+    useEffect(() => { setTab('1'); }, [code]);
 
-    // Normalize nested data
-    const languages = country.languages
-        ? Object.values(country.languages)
-        : [];
-    const currencies = country.currencies
-        ? Object.entries(country.currencies).map(
-            ([, { name, symbol }]) => `${name} (${symbol})`
-        )
-        : [];
-    const nativeNames = country.name.nativeName
-        ? Object.values(country.name.nativeName).map((n) => n.common)
-        : [];
+    if (loading || !country) return <Container maxWidth="lg" sx={{ py:4 }}><Skeleton height={40} width={100}/><Skeleton height={400} sx={{my:2}}/><Skeleton height={200}/></Container>;
+
+    const accent = regionColors[country.region] || ['#fff','#fff'];
 
     return (
-        <main className="container mx-auto px-6 py-8">
-            <button
-                onClick={() => navigate(-1)}
-                className="flex items-center px-6 py-2 mb-8 bg-white dark:bg-gray-700 shadow rounded"
-            >
-                <FiArrowLeft className="mr-2" /> Back
-            </button>
-
-            <div className="grid gap-16 lg:grid-cols-2">
-                <img
-                    src={country.flags.svg}
-                    alt={country.name.common}
-                    className="w-full h-auto rounded shadow"
-                />
-                <div className="text-gray-900 dark:text-gray-100">
-                    <h2 className="text-2xl font-bold mb-4">{country.name.common}</h2>
-
-                    <div className="space-y-2 mb-6">
-                        <p>
-                            <span className="font-semibold">Native Name:</span>{' '}
-                            {nativeNames.join(', ')}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Population:</span>{' '}
-                            {country.population.toLocaleString()}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Region:</span>{' '}
-                            {country.region}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Subregion:</span>{' '}
-                            {country.subregion}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Capital:</span>{' '}
-                            {country.capital?.[0] || 'N/A'}
-                        </p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <p>
-                            <span className="font-semibold">Top Level Domain:</span>{' '}
-                            {country.tld?.join(', ')}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Currencies:</span>{' '}
-                            {currencies.join(', ')}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Languages:</span>{' '}
-                            {languages.join(', ')}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <Container maxWidth="lg" sx={{ py:4 }}>
+            <Button component={RouterLink} to="/" startIcon={<ArrowBackIcon />} sx={{ mb:3 }}>Back</Button>
+            <Grow in timeout={500}>
+                <Paper elevation={3} sx={{ p: {xs:2,md:4},borderRadius:2,background:`linear-gradient(135deg,${accent[0]},${accent[1]})`,color:'#333' }}>
+                    <TabContext value={tab}>
+                        <Box sx={{ borderBottom:1,borderColor:'divider',mb:2 }}>
+                            <Tabs value={tab} onChange={(_,v)=>setTab(v)} centered>
+                                <Tab label="Overview" value="1" />
+                                <Tab label="Stats" value="2" />
+                                <Tab label="Neighbors" value="3" />
+                            </Tabs>
+                        </Box>
+                        <TabPanel value="1" sx={{p:0}}><OverviewTab country={country} neighbors={neighbors}/></TabPanel>
+                        <TabPanel value="2" sx={{p:0}}><StatsTab country={country} neighbors={neighbors}/></TabPanel>
+                        <TabPanel value="3" sx={{p:0}}><NeighborsTab neighbors={neighbors}/></TabPanel>
+                    </TabContext>
+                </Paper>
+            </Grow>
+        </Container>
     );
 }
