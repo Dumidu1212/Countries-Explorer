@@ -5,6 +5,7 @@ import getTheme from './theme';
 import Header from './components/Header/Header';
 import Home from './pages/Home';
 import CountryDetail from './pages/CountryDetail';
+import Footer from './components/Footer/Footer.jsx';
 
 // Create a context so Header (or any child) can flip the mode:
 export const ColorModeContext = createContext({ toggle: () => {} });
@@ -35,6 +36,7 @@ export default function App() {
                             <Route path="/country/:code" element={<CountryDetail />} />
                         </Routes>
                     </Box>
+                    <Footer />
                 </BrowserRouter>
             </ThemeProvider>
         </ColorModeContext.Provider>

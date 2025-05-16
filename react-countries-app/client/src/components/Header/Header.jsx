@@ -1,35 +1,55 @@
 import React, { useContext } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, alpha } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Box, useMediaQuery } from '@mui/material';
 import { LightMode, DarkMode } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import { Link as RouterLink } from 'react-router-dom';
 import { ColorModeContext } from '../../App';
+import logoSrc from '../../assets/logo.png';
 
 export default function Header() {
     const theme = useTheme();
+    const isSm = useMediaQuery(theme.breakpoints.down('sm'));
     const { toggle } = useContext(ColorModeContext);
 
+    // Determine AppBar background based on light/dark mode
+    const bgColor = theme.palette.mode === 'light'
+        ? theme.palette.success.main
+        : theme.palette.success.dark;
+
     return (
-        <AppBar position="sticky" color="inherit" elevation={0}>
-            <Toolbar sx={{ justifyContent: 'space-between' }}>
-                <Typography
+        <AppBar
+            position="sticky"
+            elevation={1}
+            sx={{
+                pb: isSm ? 0 : 1,
+                pt: isSm ? 0 : 1,
+                bgcolor: bgColor,
+            }}
+        >
+            <Toolbar sx={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                {/* Logo + Title */}
+                <Box
                     component={RouterLink}
                     to="/"
-                    variant="h5"
-                    sx={{
-                        textDecoration: 'none',
-                        color: 'inherit',
-                        '&:hover': { opacity: 0.8 },
-                    }}
+                    sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
                 >
-                    Countries Explorer
-                </Typography>
+                    <Box
+                        component="img"
+                        src={logoSrc}
+                        alt="Logo"
+                        sx={{ height: 40, mr: 1 }}
+                    />
+                    <Typography variant="h6" noWrap sx={{ color: 'common.white', fontWeight: 700 }}>
+                        Countries Explorer
+                    </Typography>
+                </Box>
 
+                {/* Dark/Light Toggle */}
                 <IconButton
                     onClick={toggle}
                     sx={{
-                        bgcolor: alpha(theme.palette.grey[300], 0.3),
-                        '&:hover': { bgcolor: alpha(theme.palette.grey[300], 0.5) },
+                        bgcolor: alpha(theme.palette.common.white, 0.2),
+                        '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.3) },
                     }}
                     color="inherit"
                     aria-label="toggle light/dark mode"

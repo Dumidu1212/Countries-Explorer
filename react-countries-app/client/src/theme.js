@@ -4,9 +4,10 @@ export default function getTheme(mode) {
     // 1) Base theme with palette & component overrides
     const base = createTheme({
         palette: {
-            mode,              // 'light' or 'dark'
-            primary: { main: '#1976d2' },
+            mode,
+            primary: { main: '#4caf50', contrastText: '#fff' },   // green
             secondary: { main: '#f50057' },
+            success:   { main: '#4caf50', contrastText: '#fff' },  // match footer
         },
         components: {
             MuiAppBar: { styleOverrides: { root: { boxShadow: 'none' } } },
