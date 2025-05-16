@@ -1,39 +1,31 @@
-// src/App.jsx
 import React, { useState, useMemo, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, IconButton, Box } from '@mui/material';
-import { Brightness4, Brightness7 } from '@mui/icons-material';
-import themeDefinition from './theme';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import getTheme from './theme';
+import Header from './components/Header/Header';
 import Home from './pages/Home';
 import CountryDetail from './pages/CountryDetail';
-import Header from './components/Header/Header';
 
-// Create a context for toggling
-export const ColorModeContext = createContext({ toggleColorMode: () => {} });
+// Create a context so Header (or any child) can flip the mode:
+export const ColorModeContext = createContext({ toggle: () => {} });
 
 export default function App() {
     const [mode, setMode] = useState('light');
 
-    // Memoize the theme so it updates when `mode` changes
-    const theme = useMemo(
-        () => ({
-            ...themeDefinition,
-            palette: { ...themeDefinition.palette, mode },
-        }),
-        [mode]
-    );
-
     const colorMode = useMemo(
         () => ({
-            toggleColorMode: () =>
-                setMode((prev) => (prev === 'light' ? 'dark' : 'light')),
+            toggle: () => setMode(prev => (prev === 'light' ? 'dark' : 'light')),
         }),
         []
     );
 
+    // Re-create the theme object only when `mode` changes:
+    const theme = useMemo(() => getTheme(mode), [mode]);
+
     return (
         <ColorModeContext.Provider value={colorMode}>
             <ThemeProvider theme={theme}>
+                {/* CssBaseline applies the mode’s global styles */}
                 <CssBaseline />
                 <BrowserRouter>
                     <Header />

@@ -36,7 +36,7 @@ export default function OverviewTab({ country }) {
 
     const nativeNames =
         Object.values(name.nativeName || {}).map((n) => n.common).join(', ');
-    const langCount = languages ? Object.values(languages).length : 0;
+    const languageNames = languages ? Object.values(languages).join(', ') : '—';
     const currencyNames = currencies
         ? Object.values(currencies).map(c => c.name).join(', ')
         : '—';
@@ -87,7 +87,7 @@ export default function OverviewTab({ country }) {
                         { icon: <PlaceIcon />, label: 'Subregion', value: subregion },
                         { icon: <LocationCityIcon />, label: 'Capital', value: capital?.[0] || '—' },
                         { icon: <DomainIcon />, label: 'TLDs', value: tld.join(', ') },
-                        { icon: <LanguageIcon />, label: 'Languages', value: langCount },
+                        { icon: <LanguageIcon />, label: 'Languages', value: languageNames },
                         { icon: <AttachMoneyIcon />, label: 'Currencies', value: currencyNames },
                         { icon: <LocationCityIcon />, label: 'Timezones', value: timezones.length },
                     ].map(({ icon, label, value }) => (

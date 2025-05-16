@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import React, { useState, useEffect } from 'react';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -14,27 +13,51 @@ import {
     fetchCountriesByLanguage,
 } from '../api/countriesApi';
 
-const REGION_OPTIONS = ['Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
-const LANGUAGE_OPTIONS = [
-    { code: 'eng', name: 'English' },
-    { code: 'spa', name: 'Spanish' },
-    { code: 'fra', name: 'French' },
-    { code: 'ara', name: 'Arabic' },
-    { code: 'por', name: 'Portuguese' },
-    { code: 'sin', name: 'Sinhala' },
-];
-
 export default function Home() {
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm]         = useState('');
     const [selectedRegion, setSelectedRegion] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('');
-    const [countries, setCountries] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [countries, setCountries]           = useState([]);
+    const [regions, setRegions]               = useState([]);
+    const [languages, setLanguages]           = useState([]);  // <-- new
+    const [loading, setLoading]               = useState(true);
+    const [error, setError]                   = useState('');
 
-    // Debounce search input
     const debouncedSearch = useDebounce(searchTerm, 300);
 
+    // On mount: fetch all countries once to derive region & language lists
+    useEffect(() => {
+        fetchAllCountries()
+            .then((all) => {
+                // Unique, sorted regions
+                const uniqueRegions = Array.from(
+                    new Set(all.map(c => c.region).filter(r => r))
+                ).sort();
+
+                // Unique languages: code → name
+                const langMap = {};
+                all.forEach(c => {
+                    if (c.languages) {
+                        Object.entries(c.languages).forEach(([code, name]) => {
+                            langMap[code] = name;
+                        });
+                    }
+                });
+                const uniqueLanguages = Object.entries(langMap)
+                    .map(([code, name]) => ({ code, name }))
+                    .sort((a, b) => a.name.localeCompare(b.name));
+
+                setRegions(uniqueRegions);
+                setLanguages(uniqueLanguages);
+            })
+            .catch(() => {
+                // if this fails, leave the dropdowns empty
+                setRegions([]);
+                setLanguages([]);
+            });
+    }, []);
+
+    // Whenever search/filters change, fetch the appropriate country list
     useEffect(() => {
         setLoading(true);
         setError('');
@@ -48,14 +71,14 @@ export default function Home() {
                     : () => fetchAllCountries();
 
         fetcher()
-            .then((data) => setCountries(data))
+            .then(setCountries)
             .catch(() => setError('Failed to load countries.'))
             .finally(() => setLoading(false));
     }, [debouncedSearch, selectedRegion, selectedLanguage]);
 
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
-            {/* Search + Filters */}
+            {/* Search + dynamic filter menus */}
             <Box
                 sx={{
                     display: 'flex',
@@ -68,8 +91,8 @@ export default function Home() {
             >
                 <SearchBar value={searchTerm} onSearch={setSearchTerm} />
                 <FilterMenu
-                    regionOptions={REGION_OPTIONS}
-                    languageOptions={LANGUAGE_OPTIONS}
+                    regionOptions={regions}
+                    languageOptions={languages}
                     selectedRegion={selectedRegion}
                     selectedLanguage={selectedLanguage}
                     onSelectRegion={setSelectedRegion}
@@ -77,15 +100,11 @@ export default function Home() {
                 />
             </Box>
 
-            {/* Loading & Error */}
+            {/* Feedback */}
             {loading && <Typography align="center">Loading…</Typography>}
-            {error && (
-                <Typography color="error" align="center">
-                    {error}
-                </Typography>
-            )}
+            {error   && <Typography color="error" align="center">{error}</Typography>}
 
-            {/* Country Grid */}
+            {/* Countries grid */}
             {!loading && !error && (
                 <Box
                     sx={{
@@ -99,7 +118,7 @@ export default function Home() {
                         gap: 3,
                     }}
                 >
-                    {countries.map((c) => (
+                    {countries.map(c => (
                         <CountryCard key={c.cca3} country={c} />
                     ))}
                 </Box>
