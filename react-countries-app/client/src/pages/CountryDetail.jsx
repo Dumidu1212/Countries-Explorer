@@ -1,6 +1,4 @@
-// src/pages/CountryDetail.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import {
     Container,
     Paper,
@@ -13,36 +11,48 @@ import {
 } from '@mui/material';
 import { TabContext, TabPanel } from '@mui/lab';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import {
+    useParams, useNavigate, useLocation,
+} from 'react-router-dom';
 
 import { fetchCountryByCode } from '../api/countriesApi';
-import OverviewTab  from '../components/CountryDetail/OverviewTab';
-import StatsTab     from '../components/CountryDetail/StatsTab';
-import NeighborsTab from '../components/CountryDetail/NeighborsTab';
-import GalleryTab   from '../components/CountryDetail/GalleryTab';
+import OverviewTab   from '../components/CountryDetail/OverviewTab';
+import StatsTab      from '../components/CountryDetail/StatsTab';
+import NeighborsTab  from '../components/CountryDetail/NeighborsTab';
+import GalleryTab    from '../components/CountryDetail/GalleryTab';
 
 export default function CountryDetail() {
-    const { code } = useParams();
+    const { code }  = useParams();
     const navigate   = useNavigate();
-    const [country,  setCountry]   = useState(null);
-    const [neighbors,setNeighbors] = useState([]);
-    const [tab,      setTab]       = useState('1');
-    const [loading,  setLoading]   = useState(true);
+    const location   = useLocation();   // to inspect state
 
-    // load country + neighbors
+    const [country,   setCountry]   = useState(null);
+    const [neighbors, setNeighbors] = useState([]);
+    const [tab,       setTab]       = useState('1');
+    const [loading,   setLoading]   = useState(true);
+
+    /* ─── fetch current country + borders ──────────────────── */
     useEffect(() => {
+        let active = true;
         setLoading(true);
-        fetchCountryByCode(code).then(([data]) => {
-            setCountry(data);
-            if (data.borders?.length) {
-                Promise.all(data.borders.map(c => fetchCountryByCode(c).then(r => r[0])))
-                    .then(setNeighbors);
+
+        fetchCountryByCode(code).then(([c]) => {
+            if (!active) return;
+            setCountry(c);
+
+            if (c.borders?.length) {
+                Promise.all(
+                    c.borders.map((b) => fetchCountryByCode(b).then((r) => r[0])),
+                ).then((nb) => active && setNeighbors(nb));
             }
             setLoading(false);
         });
+
+        return () => { active = false; };
     }, [code]);
 
-    // reset to Overview whenever country changes
-    useEffect(() => setTab('1'), [code]);
+    /* reset to Overview when the country changes */
+    useEffect(() => { setTab('1'); }, [code]);
 
     if (loading || !country) {
         return (
@@ -54,36 +64,38 @@ export default function CountryDetail() {
         );
     }
 
+    /* ─── UI ────────────────────────────────────────────────── */
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
-            {/* Back Button */}
             <Button
-                onClick={() => navigate(-1)}
                 startIcon={<ArrowBackIcon />}
                 sx={{ mb: 3 }}
+                onClick={() => {
+                    /** behaviour:
+                     *  ① if we came from a search / favourites page, use native history:
+                     *     navigate(-1)
+                     *  ② otherwise (e.g. user opened /country/XYZ in new tab)
+                     *     go home.
+                     */
+                    if (location.state?.from || window.history.length > 2) {
+                        navigate(-1);
+                    } else {
+                        navigate('/');
+                    }
+                }}
             >
                 Go Back
             </Button>
 
-            <Grow in timeout={400}>
-                <Paper
-                    elevation={2}
-                    sx={{
-                        p: { xs: 2, md: 4 },
-                        borderRadius: 2,
-                        bgcolor: 'background.paper'
-                    }}
-                >
+            <Grow in>
+                <Paper sx={{ p: { xs: 2, md: 4 }, borderRadius: 2 }}>
                     <TabContext value={tab}>
-                        {/* Tabs */}
                         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                             <Tabs
                                 value={tab}
                                 onChange={(_, v) => setTab(v)}
                                 variant="scrollable"
                                 scrollButtons="auto"
-                                textColor="primary"
-                                indicatorColor="primary"
                             >
                                 <Tab label="Overview"  value="1" />
                                 <Tab label="Stats"      value="2" />
@@ -92,7 +104,6 @@ export default function CountryDetail() {
                             </Tabs>
                         </Box>
 
-                        {/* Panels */}
                         <TabPanel value="1" sx={{ p: 0 }}>
                             <OverviewTab country={country} />
                         </TabPanel>

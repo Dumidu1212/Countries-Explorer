@@ -1,7 +1,7 @@
 // src/components/CountryGrid.jsx
 import React from 'react';
 import { Grid } from '@mui/material';
-import CountryCard from './CountryCard';
+import CountryCard from '../CountryCard/CountryCard.jsx';
 
 export default function CountryGrid({ countries }) {
     return (

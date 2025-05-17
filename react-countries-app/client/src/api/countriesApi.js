@@ -1,34 +1,10 @@
-// src/api/countriesApi.js
+// api/countriesApi.js
 import axios from 'axios';
 
-const BASE_URL = 'https://restcountries.com/v3.1';
+const BASE = 'https://restcountries.com/v3.1';
 
-/** GET /all */
-export async function fetchAllCountries() {
-    const { data } = await axios.get(`${BASE_URL}/all`);
-    return data;
-}
-
-/** GET /name/{name} */
-export async function fetchCountriesByName(name) {
-    const { data } = await axios.get(`${BASE_URL}/name/${name}`);
-    return data;
-}
-
-/** GET /region/{region} */
-export async function fetchCountriesByRegion(region) {
-    const { data } = await axios.get(`${BASE_URL}/region/${region}`);
-    return data;
-}
-
-/** GET /lang/{language} */
-export async function fetchCountriesByLanguage(lang) {
-    const { data } = await axios.get(`${BASE_URL}/lang/${lang}`);
-    return data;
-}
-
-/** GET /alpha/{code} */
-export async function fetchCountryByCode(code) {
-    const { data } = await axios.get(`${BASE_URL}/alpha/${code}`);
-    return data;
-}
+export const fetchAllCountries       = () => axios.get(`${BASE}/all`).then(r => r.data);
+export const fetchCountriesByName    = (n) => axios.get(`${BASE}/name/${n}`).then(r => r.data);
+export const fetchCountriesByRegion  = (r) => axios.get(`${BASE}/region/${r}`).then(r => r.data);
+export const fetchCountriesByLanguage= (l) => axios.get(`${BASE}/lang/${l}`).then(r => r.data);
+export const fetchCountryByCode      = (c) => axios.get(`${BASE}/alpha/${c}`).then(r => r.data);

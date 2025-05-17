@@ -1,44 +1,73 @@
-import React, { useState, useMemo, createContext, useContext } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+
 import getTheme from './theme';
-import Header from './components/Header/Header';
-import Home from './pages/Home';
-import CountryDetail from './pages/CountryDetail';
+
+// context providers
+import { ColorModeContext } from './contexts/ColorModeContext';
+import { AuthProvider, AuthContext } from './contexts/AuthContext';
+import { FavoritesProvider } from './contexts/FavoritesContext';
+
+// UI pieces
+import Header from './components/Header/Header.jsx';
 import Footer from './components/Footer/Footer.jsx';
+import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary.jsx';
 
-// Create a context so Header (or any child) can flip the mode:
-export const ColorModeContext = createContext({ toggle: () => {} });
+// pages
+import Home from './pages/Home.jsx';
+import CountryDetail from './pages/CountryDetail.jsx';
+import Profile from './pages/Profile.jsx';
+import Login from './pages/Login.jsx';
 
+/* ─────────── helper component for protected routes ─────────── */
+function Protected({ children }) {
+    const { user } = React.useContext(AuthContext);
+    return user ? children : <Navigate to="/login" replace />;
+}
+
+/* ────────────────────────────────────────────────────────────── */
 export default function App() {
+    /* colour-mode logic ----------------------------------------------------- */
     const [mode, setMode] = useState('light');
-
     const colorMode = useMemo(
-        () => ({
-            toggle: () => setMode(prev => (prev === 'light' ? 'dark' : 'light')),
-        }),
-        []
+        () => ({ toggle: () => setMode((m) => (m === 'light' ? 'dark' : 'light')) }),
+        [],
     );
-
-    // Re-create the theme object only when `mode` changes:
     const theme = useMemo(() => getTheme(mode), [mode]);
 
     return (
-        <ColorModeContext.Provider value={colorMode}>
-            <ThemeProvider theme={theme}>
-                {/* CssBaseline applies the mode’s global styles */}
-                <CssBaseline />
-                <BrowserRouter>
-                    <Header />
-                    <Box component="main">
-                        <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/country/:code" element={<CountryDetail />} />
-                        </Routes>
-                    </Box>
-                    <Footer />
-                </BrowserRouter>
-            </ThemeProvider>
-        </ColorModeContext.Provider>
+        <AuthProvider>
+            <FavoritesProvider>
+                <ColorModeContext.Provider value={colorMode}>
+                    <ThemeProvider theme={theme}>
+                        <CssBaseline />
+                        <BrowserRouter>
+                            <Header />
+                            <Box component="main">
+                                <ErrorBoundary>
+                                    <Routes>
+                                        <Route index element={<Home />} />
+                                        <Route path="/country/:code" element={<CountryDetail />} />
+                                        <Route path="/login" element={<Login />} />
+                                        <Route
+                                            path="/profile"
+                                            element={(
+                                                <Protected>
+                                                    <Profile />
+                                                </Protected>
+                                            )}
+                                        />
+                                        {/* fallback */}
+                                        <Route path="*" element={<Navigate to="/" replace />} />
+                                    </Routes>
+                                </ErrorBoundary>
+                            </Box>
+                            <Footer />
+                        </BrowserRouter>
+                    </ThemeProvider>
+                </ColorModeContext.Provider>
+            </FavoritesProvider>
+        </AuthProvider>
     );
 }
