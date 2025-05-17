@@ -1,6 +1,6 @@
 Countries Explorer
 
-Hosted URL: countries-explorer-iota.vercel.app
+Hosted URL: https://countries-explorer-iota.vercel.app/
 
 A React application to browse, search, filter, sort, and favorite countries, leveraging the REST Countries API.
 
