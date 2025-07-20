@@ -2,7 +2,6 @@
 
 > A modern React application to explore and favorite countries using the [REST Countries API](https://restcountries.com/).
 
-
 ---
 
 ## ✨ Features
